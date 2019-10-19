@@ -407,6 +407,22 @@ export class MarkdownEngine {
       isForVSCode,
     )}" charset="UTF-8"></script>`;
 
+    // zenuml
+    scripts += `<script type="text/javascript" src="${utility.addFileProtocol(
+      path.resolve(
+        utility.extensionDirectoryPath,
+        "./dependencies/sequence-diagram/vue.js",
+      ),
+      isForVSCode,
+    )}" charset="UTF-8"></script>`;
+    scripts += `<script type="text/javascript" src="${utility.addFileProtocol(
+      path.resolve(
+        utility.extensionDirectoryPath,
+        "./dependencies/sequence-diagram/sequence-diagram.min.js",
+      ),
+      isForVSCode,
+    )}" charset="UTF-8"></script>`;
+
     // wavedrome
     scripts += `<script type="text/javascript" src="${utility.addFileProtocol(
       path.resolve(
@@ -1118,6 +1134,22 @@ if (typeof(window['Reveal']) !== 'undefined') {
 }
 </script>`;
     }
+    // zenuml
+    let zenumlScript = ``;
+    if (options.offline) {
+      zenumlScript += `<script type="text/javascript" src="file:///${path.resolve(
+        utility.extensionDirectoryPath,
+        "./dependencies/sequence-diagram/vue.js",
+      )}" charset="UTF-8"></script>`;
+      zenumlScript += `<script type="text/javascript" src="file:///${path.resolve(
+        utility.extensionDirectoryPath,
+        "./dependencies/sequence-diagram/sequence-diagram.min.js",
+      )}" charset="UTF-8"></script>`;
+    } else {
+      zenumlScript += `<script type="text/javascript" src="https://unpkg.com/vue"></script>`;
+      zenumlScript += `<script type="text/javascript" src="https://unpkg.com/sequence-diagram"></script>`;
+    }
+
     // wavedrom
     let wavedromScript = ``;
     let wavedromInitScript = ``;
@@ -1206,7 +1238,7 @@ for (var i = 0; i < flowcharts.length; i++) {
   }
 }
 </script>`;
-    }
+  }
 
     // sequence diagrams
     let sequenceDiagramScript = ``;
@@ -1495,6 +1527,7 @@ sidebarTOCBtn.addEventListener('click', function(event) {
 
       ${presentationScript}
       ${mermaidScript}
+      ${zenumlScript}
       ${wavedromScript}
       ${vegaScript}
       ${flowchartScript}
@@ -2750,30 +2783,33 @@ sidebarTOCBtn.addEventListener('click', function(event) {
     /**
      * render markdown to html
      */
-    let html;
-    if (this.config.usePandocParser) {
-      // pandoc
-      try {
-        let args = yamlConfig["pandoc_args"] || [];
-        if (!(args instanceof Array)) {
-          args = [];
-        }
-
-        // check bibliography
-        if (yamlConfig["bibliography"] || yamlConfig["references"]) {
-          args.push("--filter", "pandoc-citeproc");
-        }
-
-        args = this.config.pandocArguments.concat(args);
-
-        html = await this.pandocRender(outputString, args);
-      } catch (error) {
-        html = `<pre>${error}</pre>`;
-      }
-    } else {
-      // markdown-it
-      html = this.md.render(outputString);
-    }
+    let html = ` 
+<sequence-diagram>
+  ${outputString}
+</sequence-diagram>`;
+    // if (this.config.usePandocParser) {
+    //   // pandoc
+    //   try {
+    //     let args = yamlConfig["pandoc_args"] || [];
+    //     if (!(args instanceof Array)) {
+    //       args = [];
+    //     }
+    //
+    //     // check bibliography
+    //     if (yamlConfig["bibliography"] || yamlConfig["references"]) {
+    //       args.push("--filter", "pandoc-citeproc");
+    //     }
+    //
+    //     args = this.config.pandocArguments.concat(args);
+    //
+    //     html = await this.pandocRender(outputString, args);
+    //   } catch (error) {
+    //     html = `<pre>${error}</pre>`;
+    //   }
+    // } else {
+    //   // markdown-it
+    //   html = this.md.render(outputString);
+    // }
 
     /**
      * render tocHTML for [TOC] and sidebar TOC
